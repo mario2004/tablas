@@ -1,12 +1,13 @@
 from flask import Flask, render_template, redirect, url_for, request, flash, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, String, Integer, Text
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tablas2.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tablas.db'
 
 db = SQLAlchemy(app)
 
@@ -15,12 +16,24 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
     comments = db.relationship('Comment')
+    def to_dict(self):
+        return{
+            'id' : self.id,
+            'name' : self.name,
+            'comments': self.comments.to_dict()
+        }
 
 class Comment(db.Model):
     __tablename__ = 'comments'
     id = db.Column(db.Integer, primary_key=True)
     text = db.Column(db.Text)
     idUser = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    def to_dict(self):
+        return{
+            'id' : self.id,
+            'text' : self.text,
+            'idUser': self.idUser
+        }
 
 @app.route('/')
 def home():
@@ -43,8 +56,8 @@ def get():
     with app.app_context():
         s = db.session()
         usuario = s.query(User).filter(User.name == 'Fulano').one()
-        print ("employees: {}".format(usuario.comments))
-        print ("empleat zero: {}".format(usuario.comments[0].text))
+        print ("Todos los comentarios: {}".format(usuario.comments))
+        print ("comentario cero: {}".format(usuario.comments[0].text))
         for t in usuario.comments:
             print ("{}".format(t.text))
     return render_template('home.html')
