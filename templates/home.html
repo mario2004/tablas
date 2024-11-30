@@ -4,8 +4,12 @@
 <a href="/get">Get</a>
 <br>
 <a href="/set">Set</a>
+<div id="midiv"></div>
 <script>
-    let numCitas=contador;
-    console.log(numCitas);
+    var user = {{usuario|safe}};
+    let midiv = document.getElementById("midiv");
+    user.comments.forEach((element, index) => {
+        midiv.innerHTML += element.text + "<br>";    
+    });
 </script>
 {% endblock %}

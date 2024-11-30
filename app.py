@@ -1,9 +1,8 @@
-from flask import Flask, render_template, redirect, url_for, request, flash, session
+from flask import Flask, render_template, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, String, Integer, Text
 from sqlalchemy.orm import relationship
-from sqlalchemy.ext.declarative import declarative_base
-import json
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -17,10 +16,16 @@ class User(db.Model):
     name = db.Column(db.String)
     comments = db.relationship('Comment')
     def to_dict(self):
+        obj={}
+        array=[]
+        for item in self.comments:
+            obj['id']=item.id
+            obj['text']=item.text
+            array.append(obj) # TODO flipante, aquí cambia el valor de array que supuestamente es una variable local.
         return{
             'id' : self.id,
             'name' : self.name,
-            'comments': self.comments.to_dict()
+            'comments': array
         }
 
 class Comment(db.Model):
@@ -32,7 +37,6 @@ class Comment(db.Model):
         return{
             'id' : self.id,
             'text' : self.text,
-            'idUser': self.idUser
         }
 
 @app.route('/')
@@ -43,7 +47,7 @@ def home():
 def set():
     with app.app_context():
         s = db.session()
-        user = User(name='Fulano')
+        user = User(name='Mengano')
         s.add(Comment(text='comentario 1', idUser=1))
         s.add(Comment(text='comentario 2', idUser=1))
         s.add(Comment(text='comentario 3', idUser=1))
@@ -56,11 +60,8 @@ def get():
     with app.app_context():
         s = db.session()
         usuario = s.query(User).filter(User.name == 'Fulano').one()
-        print ("Todos los comentarios: {}".format(usuario.comments))
-        print ("comentario cero: {}".format(usuario.comments[0].text))
-        for t in usuario.comments:
-            print ("{}".format(t.text))
-    return render_template('home.html')
+        obj = usuario.to_dict()
+    return render_template('home.html', usuario=obj)
 
 if __name__ == '__main__':
     with app.app_context():
