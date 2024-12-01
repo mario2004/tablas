@@ -1,8 +1,5 @@
-from flask import Flask, render_template, session, jsonify
+from flask import Flask, render_template, redirect, url_for, request, flash, session
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, String, Integer, Text
-from sqlalchemy.orm import relationship
-import json
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
@@ -10,39 +7,44 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tablas.db'
 
 db = SQLAlchemy(app)
 
-def commentsToJson(c):
-    obj={}
-    miarray=[]
-    for index in range(len(c)):
-        obj['id']=c[index].id
-        obj['text']=c[index].text
-        miarray[index]=obj
-    return miarray
-
-def userToJson(u):
-    objResult={}
-    objResult['id']=u.id
-    objResult['name']=u.name
-    commentsArray=commentsToJson(u.comments)
-    objResult['comments']=commentsArray
-    return objResult
-
+# Inicio NOTA. Este fragmento estaba en el fichero models.py y se ponía aquí un import models.py. No se sabe por qué así no funciona y no reconoce User.
+from datetime import datetime
 
 class User(db.Model):
-    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    comments = db.relationship('Comment', lazy='joined')
- 
-class Comment(db.Model):
-    __tablename__ = 'comments'
-    id = db.Column(db.Integer, primary_key=True)
-    text = db.Column(db.Text)
-    idUser = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     def to_dict(self):
-        return{
-            'id' : self.id,
-            'text' : self.text,
+        return {
+            'id': self.id,
+            'username': self.username,
+            'email': self.email
+        }
+
+class Request(db.Model):
+    idRequest = db.Column(db.Integer, primary_key=True)
+    idAppointment = db.Column(db.Integer, db.ForeignKey('appointment.idAppointment'), nullable=False)
+    requestText = db.Column(db.Text, unique=True, nullable=True)
+    appointment = db.relationship('Appointment', backref=db.backref('requests', lazy=True))
+    def to_dict(self):
+        return {
+            'idRequest': self.idRequest,
+            'idAppointment': self.idAppointment,
+            'requestText': self.requestText,
+            'appointment': self.appointment.to_dict(),
+        }
+
+class Appointment(db.Model):
+    idAppointment = db.Column(db.Integer, primary_key=True)
+    idUser = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    user = db.relationship('User', backref=db.backref('appointments', lazy=True))
+    def to_dict(self):
+        return {
+            'idAppointment': self.idAppointment,
+            'idUser': self.idUser,
+            'amount': self.amount,
+            'user': self.user.to_dict(),
         }
 
 @app.route('/')
@@ -53,21 +55,28 @@ def home():
 def set():
     with app.app_context():
         s = db.session()
-        user = User(name='Mengano')
-        s.add(Comment(text='comentario 1', idUser=1))
-        s.add(Comment(text='comentario 2', idUser=1))
-        s.add(Comment(text='comentario 3', idUser=1))
+        appointment = Appointment(amount=255, idUser=1)
+        user = User(username='Mengano', email='email@yopmail.com')
+        s.add(Request(requestText='comentario 1', idAppointment=1))
+        s.add(Request(requestText='comentario 2', idAppointment=1))
+        s.add(Request(requestText='comentario 3', idAppointment=1))
         s.add(user)
+        s.add(appointment)
         s.commit()
     return render_template('home.html')
 
 @app.route('/get')
 def get():
-    with app.app_context():
-        s = db.session()
-        usuario = s.query(User).filter(User.name == 'Fulano').one()
-        obj = userToJson(usuario)
-    return render_template('home.html', usuario=obj)
+    s = db.session()
+    requests = s.query(Request).filter_by(idAppointment=1).all()
+    return render_template('home.html', requests=requests)
+
+@app.route('/get2')
+def get2():
+    s = db.session()
+    requests = s.query(Request).filter_by(idAppointment=1).all()
+    objetos=[request.to_dict() for request in requests]
+    return render_template('home.html', requests=objetos)
 
 if __name__ == '__main__':
     with app.app_context():

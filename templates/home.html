@@ -4,12 +4,16 @@
 <a href="/get">Get</a>
 <br>
 <a href="/set">Set</a>
-<div id="midiv"></div>
+<br>
+<a href="/get2">Get2</a>
+<div class="list-container">
+    {% for request in requests %}
+        <div>{{ request.requestText }}</div>
+    {% endfor %}
+</div>
 <script>
-    var user = {{usuario|safe}};
-    let midiv = document.getElementById("midiv");
-    user.comments.forEach((element, index) => {
-        midiv.innerHTML += element.text + "<br>";    
-    });
+    var requests = {{requests|safe}};
+    console.log(requests);
+    console.log(requests[0]);
 </script>
 {% endblock %}
