@@ -11,6 +11,7 @@ db = SQLAlchemy(app)
 from datetime import datetime
 
 class User(db.Model):
+    __tablename__="users"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -24,7 +25,8 @@ class User(db.Model):
 class Request(db.Model):
     idRequest = db.Column(db.Integer, primary_key=True)
     idAppointment = db.Column(db.Integer, db.ForeignKey('appointment.idAppointment'), nullable=False)
-    requestText = db.Column(db.Text, unique=True, nullable=True)
+    idUser = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    requestText = db.Column(db.Text, nullable=True)
     appointment = db.relationship('Appointment', backref=db.backref('requests', lazy=True))
     def to_dict(self):
         return {
@@ -36,7 +38,7 @@ class Request(db.Model):
 
 class Appointment(db.Model):
     idAppointment = db.Column(db.Integer, primary_key=True)
-    idUser = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    idUser = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     amount = db.Column(db.Float, nullable=False)
     user = db.relationship('User', backref=db.backref('appointments', lazy=True))
     def to_dict(self):
@@ -51,17 +53,25 @@ class Appointment(db.Model):
 def home():
     return render_template('home.html')
 
-@app.route('/set')
-def set():
+@app.route('/cita', methods=['GET', 'POST'])
+def cita():
+    amount = request.form['amount']
+    idUser = request.form['idUser']
     with app.app_context():
         s = db.session()
-        appointment = Appointment(amount=255, idUser=1)
-        user = User(username='Mengano', email='email@yopmail.com')
-        s.add(Request(requestText='comentario 1', idAppointment=1))
-        s.add(Request(requestText='comentario 2', idAppointment=1))
-        s.add(Request(requestText='comentario 3', idAppointment=1))
-        s.add(user)
+        appointment = Appointment(idUser=idUser, amount=amount)
         s.add(appointment)
+        s.commit()
+    return render_template('home.html')
+
+@app.route('/requestCita', methods=['GET', 'POST'])
+def requestCita():
+    texto = request.form['texto']
+    idUser = request.form['idUser']
+    idCita = request.form['idCita']
+    with app.app_context():
+        s = db.session()
+        s.add(Request(requestText=texto, idAppointment=idCita, idUser=idUser))
         s.commit()
     return render_template('home.html')
 
@@ -71,12 +81,17 @@ def get():
     requests = s.query(Request).filter_by(idAppointment=1).all()
     return render_template('home.html', requests=requests)
 
-@app.route('/get2')
-def get2():
+@app.route('/mostrarCitas', methods=['GET', 'POST'])
+def mostrarCitas():
+    id = request.form['idUser']
     s = db.session()
-    requests = s.query(Request).filter_by(idAppointment=1).all()
-    objetos=[request.to_dict() for request in requests]
-    return render_template('home.html', requests=objetos)
+    citasDB = s.query(Appointment).filter_by(idUser=id).all()
+    citasJSON=[cita.to_dict() for cita in citasDB]
+    for cita in citasJSON:
+        requestsDB = s.query(Request).filter_by(idAppointment=cita['idAppointment']).all()
+        requestsJSON=[request.to_dict() for request in requestsDB]
+        cita['requests']=requestsJSON
+    return render_template('home.html', requests=citasJSON)
 
 if __name__ == '__main__':
     with app.app_context():

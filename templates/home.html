@@ -1,18 +1,53 @@
 {% block content %}
-<h1>Welcome</h1>
+<head>
+    <meta charset="UTF-8">
+</head>
+<h1>Request</h1>
+<form action="/requestCita" method="post">
+    <label for="idUser">idUser</label>
+    <input id="idUser" name="idUser" value="2">
+    <label for="texto">texto</label>
+    <input name="texto" value="texto de pedir cita">
+    <label for="idCita">idCita</label>
+    <input id="idCita" name="idCita" value="1">
+    <input type="submit" value="Insertar">
+</form>
+<h1>Cita</h1>
+<form action="/cita" method="post">
+    <label for="idUser">idUser</label>
+    <input id="idUser" name="idUser" value="1">
+    <label for="amount">amount</label>
+    <input id="amount" name="amount" value="321">
+    <input type="submit" value="Crear cita">
+</form>
+<h1>Mostrar citas</h1>
+<form action="/mostrarCitas" method="post">
+    <label for="idUser">idUser</label>
+    <input id="idUser" name="idUser" value="1">
+    <input type="submit" value="dale">
+</form>
 <p></p>
 <a href="/get">Get</a>
 <br>
 <a href="/set">Set</a>
 <br>
 <a href="/get2">Get2</a>
-<div class="list-container">
+<div class="list-container" id="lista">
     {% for request in requests %}
         <div>{{ request.requestText }}</div>
     {% endfor %}
 </div>
 <script>
     var requests = {{requests|safe}};
+    let milista=document.getElementById("lista");
+    requests.forEach(element => {
+        element.requests.forEach(element => {
+            const node = document.createElement("li");
+            const textnode = document.createTextNode(element.requestText);
+            node.appendChild(textnode);
+            milista.appendChild(node); 
+        });
+    });
     console.log(requests);
     console.log(requests[0]);
 </script>
