@@ -1,0 +1,5 @@
+id;username;email;password_hash
+1;Pepe;pepe@yopmail.com;pbkdf2:sha256:600000$vq4GUdwJrFjqJvxT$7045451fac0611248d0d225d64ed7f4c02edb90e76b995fb01dc883c72291bba
+2;lolo;lolo@yopmail.com;pbkdf2:sha256:600000$d9hb73bOHkTdtAfU$9c9cdadbb8b55ad5aa7651bb35adad010eccd36949b8c9d91e41fd47099347b3
+3;fulano;fulano@yopmail.com;pbkdf2:sha256:600000$0e6a4VIhFJ2TMfEY$eaa3f139497d4f197baec11549b1d465d041d835ceb5780924bd1b91867fae6f
+4;mengano;mengano@yopmail.com;pbkdf2:sha256:600000$Xm2eNlHHKIRk2LH9$53203e8e4b1bcc208168f80b9534af395d4c777cf5384a4a2a1265afc0ec4ec5

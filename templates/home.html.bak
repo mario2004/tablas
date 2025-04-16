@@ -27,7 +27,7 @@
     <input type="submit" value="dale">
 </form>
 <p></p>
-<a href="/messages">Messages</a>
+<a href="/get">Get</a>
 <br>
 <a href="/set">Set</a>
 <br>
@@ -38,15 +38,17 @@
     {% endfor %}
 </div>
 <script>
-    var mensajes = {{messages|safe}};
+    var requests = {{requests|safe}};
     let milista=document.getElementById("lista");
-    mensajes.forEach(element => {
-        const node = document.createElement("li");
-        const textnode = document.createTextNode("Cita "+element.appointment.idAppointment+" Cantidad "+element.appointment.amount+" "+element.appointment.currencyFrom+" Mensaje: "+element.messageText);
-        node.appendChild(textnode);
-        milista.appendChild(node); 
-});
-    console.log(mensajes);
-    console.log(mensajes[0]);
+    requests.forEach(element => {
+        element.requests.forEach(element => {
+            const node = document.createElement("li");
+            const textnode = document.createTextNode(element.requestText);
+            node.appendChild(textnode);
+            milista.appendChild(node); 
+        });
+    });
+    console.log(requests);
+    console.log(requests[0]);
 </script>
 {% endblock %}

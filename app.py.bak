@@ -30,8 +30,7 @@ class Message(db.Model):
             'idUserSender': self.idUserSender,
             'messageDate': self.messageDate.isoformat() if self.messageDate else '',
             'messageText': self.messageText,
-            'appointment': self.appointment.to_dict(),
-            'user': self.user.to_dict()
+            'appointment': self.appointment.to_dict()
         }
 
 class User(db.Model):
